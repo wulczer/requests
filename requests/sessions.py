@@ -15,7 +15,7 @@ from .cookies import cookiejar_from_dict, remove_cookie_by_name
 from .defaults import defaults
 from .models import Request
 from .hooks import dispatch_hook
-from .utils import header_expand
+from .utils import header_expand, from_key_val_list
 from .packages.urllib3.poolmanager import PoolManager
 
 def merge_kwargs(local_kwarg, default_kwarg):
@@ -37,12 +37,15 @@ def merge_kwargs(local_kwarg, default_kwarg):
     if not hasattr(default_kwarg, 'items'):
         return local_kwarg
 
+    default_kwarg = from_key_val_list(default_kwarg)
+    local_kwarg = from_key_val_list(local_kwarg)
+
     # Update new values.
     kwargs = default_kwarg.copy()
     kwargs.update(local_kwarg)
 
     # Remove keys that are set to None.
-    for (k, v) in list(local_kwarg.items()):
+    for (k, v) in local_kwarg.items():
         if v is None:
             del kwargs[k]
 
@@ -70,13 +73,13 @@ class Session(object):
         verify=True,
         cert=None):
 
-        self.headers = headers or {}
+        self.headers = from_key_val_list(headers or [])
         self.auth = auth
         self.timeout = timeout
-        self.proxies = proxies or {}
-        self.hooks = hooks or {}
-        self.params = params or {}
-        self.config = config or {}
+        self.proxies = from_key_val_list(proxies or [])
+        self.hooks = from_key_val_list(hooks or {})
+        self.params = from_key_val_list(params or [])
+        self.config = from_key_val_list(config or {})
         self.prefetch = prefetch
         self.verify = verify
         self.cert = cert
@@ -161,23 +164,23 @@ class Session(object):
 
         # Expand header values.
         if headers:
-            for k, v in list(headers.items()) or {}:
+            for k, v in list(headers.items() or {}):
                 headers[k] = header_expand(v)
 
         args = dict(
             method=method,
             url=url,
             data=data,
-            params=params,
-            headers=headers,
+            params=from_key_val_list(params),
+            headers=from_key_val_list(headers),
             cookies=cookies,
             files=files,
             auth=auth,
-            hooks=hooks,
+            hooks=from_key_val_list(hooks),
             timeout=timeout,
             allow_redirects=allow_redirects,
-            proxies=proxies,
-            config=config,
+            proxies=from_key_val_list(proxies),
+            config=from_key_val_list(config),
             prefetch=prefetch,
             verify=verify,
             cert=cert,

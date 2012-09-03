@@ -90,6 +90,7 @@ if is_py2:
     from Cookie import Morsel
     from StringIO import StringIO
     from .packages import chardet
+    from .packages.urllib3.packages.ordered_dict import OrderedDict
 
     bytes = str
     str = unicode
@@ -104,6 +105,7 @@ elif is_py3:
     from http.cookies import Morsel
     from io import StringIO
     from .packages import chardet2 as chardet
+    from collections import OrderedDict
 
     str = str
     bytes = bytes
