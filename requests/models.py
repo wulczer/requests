@@ -517,6 +517,16 @@ class Request(object):
         if (content_type) and (not 'content-type' in self.headers):
             self.headers['Content-Type'] = content_type
 
+        # XXX backport pull request #957 but beware of issue #1051
+        if self.method in ('POST', 'PUT'):
+            self.headers['Content-Length'] = '0'
+            if hasattr(body, 'seek') and hasattr(body, 'tell'):
+                body.seek(0, 2)
+                self.headers['Content-Length'] = str(body.tell())
+                body.seek(0, 0)
+            elif body is not None:
+                self.headers['Content-Length'] = str(len(body))
+
         _p = urlparse(url)
         no_proxy = filter(lambda x:x.strip(), self.proxies.get('no', '').split(','))
         proxy = self.proxies.get(_p.scheme)
